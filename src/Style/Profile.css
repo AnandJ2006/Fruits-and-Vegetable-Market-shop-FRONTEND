@@ -1,0 +1,45 @@
+
+.forms{
+    padding: 50px 50px;
+    text-align: center;
+}
+
+.forms form{
+    width: 30%;
+    margin: 40px auto;
+    border: 1px solid lightgray;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    gap: 20px;
+}
+
+.forms input{
+    border: 1px solid darkcyan;
+    border-radius: 4px;
+    height: 25px;
+}
+.forms textarea{
+    border: 1px solid darkcyan;
+    border-radius: 4px;
+    height: 90px;
+}
+
+.forms label{
+    text-align: left;
+    height: 20px;
+}
+.a{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.forms button{
+    border: 1px solid darkgray;
+    border-radius: 5px;
+    width: 430px;
+    height: 35px;
+}
