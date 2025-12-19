@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useNavigate } from "react-router-dom";
 import "./../Style/Cart.css";
 import LoginPrompt from "../Common/LoginPrompt";
 
@@ -7,6 +7,7 @@ const Cart = () => {
   const { cart, setCart, isLoggedIn } = useOutletContext();
   const [showInvoice, setShowInvoice] = useState(false);
   const [invoiceData, setInvoiceData] = useState(null);
+  const navigate = useNavigate();
 
   if (!isLoggedIn) {
     return <LoginPrompt pageName="Cart" />;
@@ -44,19 +45,73 @@ const Cart = () => {
     }, 0).toFixed(2);
   };
 
-  const generateInvoice = () => {
+  const generateInvoice = async () => {
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-    const invoice = {
+    const savedProfile = JSON.parse(localStorage.getItem(`profile_${userData.email}`) || "{}");
+    
+    // Check if profile is complete
+    if (!savedProfile.name || !savedProfile.age || !savedProfile.contact || !savedProfile.address) {
+      alert("Please complete your profile before placing an order.");
+      navigate("/profile");
+      return;
+    }
+    
+    const orderData = {
       invoiceNumber: `INV-${Date.now()}`,
-      date: new Date().toLocaleDateString(),
-      customerEmail: userData.email,
-      items: groupedCart,
-      totalAmount: getTotalPrice()
+      orderDate: new Date(),
+      customer: {
+        email: userData.email,
+        name: savedProfile.name,
+        age: savedProfile.age,
+        contact: savedProfile.contact,
+        address: savedProfile.address
+      },
+      items: groupedCart.map(item => ({
+        id: item.id,
+        name: item.name,
+        color: item.color,
+        price: item.price_per_kg || item.price_per_bunch,
+        quantity: item.quantity,
+        subtotal: (item.price_per_kg || item.price_per_bunch) * item.quantity
+      })),
+      totalAmount: parseFloat(getTotalPrice()),
+      status: 'confirmed'
     };
     
-    setInvoiceData(invoice);
-    setShowInvoice(true);
-    setCart([]);
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData)
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Order saved:', result);
+        
+        const invoice = {
+          invoiceNumber: orderData.invoiceNumber,
+          date: orderData.orderDate.toLocaleDateString(),
+          customerEmail: orderData.customer.email,
+          customerName: orderData.customer.name,
+          customerContact: orderData.customer.contact,
+          customerAddress: orderData.customer.address,
+          items: groupedCart,
+          totalAmount: getTotalPrice()
+        };
+        
+        setInvoiceData(invoice);
+        setShowInvoice(true);
+        setCart([]);
+      } else {
+        alert('Failed to save order. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error saving order:', error);
+      alert('Error placing order. Please try again.');
+    }
   };
 
   const downloadInvoice = () => {
@@ -65,7 +120,13 @@ INVOICE
 =======
 Invoice Number: ${invoiceData.invoiceNumber}
 Date: ${invoiceData.date}
-Customer: ${invoiceData.customerEmail}
+
+CUSTOMER DETAILS:
+----------------
+Name: ${invoiceData.customerName}
+Email: ${invoiceData.customerEmail}
+Contact: ${invoiceData.customerContact}
+Address: ${invoiceData.customerAddress}
 
 ITEMS:
 ------
@@ -95,7 +156,11 @@ Thank you for your purchase!
           <div className="invoice-header">
             <p><strong>Invoice Number:</strong> {invoiceData.invoiceNumber}</p>
             <p><strong>Date:</strong> {invoiceData.date}</p>
-            <p><strong>Customer:</strong> {invoiceData.customerEmail}</p>
+            <h3>Customer Details:</h3>
+            <p><strong>Name:</strong> {invoiceData.customerName}</p>
+            <p><strong>Email:</strong> {invoiceData.customerEmail}</p>
+            <p><strong>Contact:</strong> {invoiceData.customerContact}</p>
+            <p><strong>Address:</strong> {invoiceData.customerAddress}</p>
           </div>
           
           <div className="invoice-items">

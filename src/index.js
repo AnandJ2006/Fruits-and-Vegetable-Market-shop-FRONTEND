@@ -8,7 +8,6 @@ import Cart from './Pages/Cart';
 import Search from './Pages/Search';
 import LoginRegister from './Pages/LoginRegister';
 import Profile from './Pages/Profile';
-import Admin from './Pages/Admin';
 
 import {createBrowserRouter,RouterProvider, Navigate} from "react-router-dom";
 
@@ -44,10 +43,6 @@ const routerVaraible = createBrowserRouter([
       {
         path:"/profile",
         element:<Profile></Profile>
-      },
-      {
-        path:"/admin",
-        element:<Admin></Admin>
       }
     ],
   },

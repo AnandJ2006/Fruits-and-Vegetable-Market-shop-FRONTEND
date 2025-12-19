@@ -7,11 +7,13 @@ import LoginPrompt from "../Common/LoginPrompt";
 const Profile = () => {
   const { isLoggedIn } = useOutletContext();
   const [userProfile, setUserProfile] = useState(null);
+  const [showForm, setShowForm] = useState(true);
 
   const{
     register,
     handleSubmit,
-    setValue
+    setValue,
+    reset
   } = useForm();
 
   useEffect(() => {
@@ -39,6 +41,8 @@ const Profile = () => {
     
     localStorage.setItem(`profile_${userData.email}`, JSON.stringify(profileData));
     setUserProfile({...userData, ...profileData});
+    setShowForm(false);
+    reset();
     alert("Profile updated successfully");
   }
 
@@ -61,19 +65,23 @@ const Profile = () => {
         </div>
       )}
       
-      <h3>Update Profile</h3>
-      <form onSubmit={handleSubmit(onSubmitHandler)}>
-        <label>User name:</label>
-        <input {...register("name")} type="text" placeholder="Enter your name" />
-        <label>Age:</label>
-        <input {...register("age")} type="number" placeholder="Enter your age" />
-        <label>Contact:</label>
-        <input {...register("contact")} type="tel" placeholder="Enter your contact number" />
-        <label>Address:</label>
-        <textarea {...register("address")} cols={10} rows={8} placeholder="Enter your address"></textarea>
-        
-        <button type="submit">Update Profile</button>
-      </form>
+      {showForm && (
+        <>
+          <h3>Update Profile</h3>
+          <form onSubmit={handleSubmit(onSubmitHandler)}>
+            <label>User name:</label>
+            <input {...register("name", { required: true })} type="text" placeholder="Enter your name" required />
+            <label>Age:</label>
+            <input {...register("age", { required: true })} type="number" placeholder="Enter your age" required />
+            <label>Contact:</label>
+            <input {...register("contact", { required: true })} type="tel" placeholder="Enter your contact number" required />
+            <label>Address:</label>
+            <textarea {...register("address", { required: true })} cols={10} rows={8} placeholder="Enter your address" required></textarea>
+            
+            <button type="submit">Update Profile</button>
+          </form>
+        </>
+      )}
     </div>
   );
 };
