@@ -15,7 +15,18 @@ const LoginRegister = () => {
     const handleSubmit = (e)=>{
         e.preventDefault();
         if (mode === "login") {
-            if(email === "abc@gmail.com" && password === "a123"){
+            const users = JSON.parse(localStorage.getItem("registeredUsers") || "[]");
+            const userStatuses = JSON.parse(localStorage.getItem("userStatuses") || "{}");
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if(user || (email === "abc@gmail.com" && password === "a123") || (email === "admin@gmail.com" && password === "admin123")){
+                // Check if user is blocked
+                const userStatus = userStatuses[email] || "active";
+                if (userStatus === "blocked" && email !== "admin@gmail.com") {
+                    alert("Your account has been blocked. Please contact admin.");
+                    return;
+                }
+                
                 const userData = { email, loginTime: new Date().toISOString() };
                 localStorage.setItem("auth", "true");
                 localStorage.setItem("userData", JSON.stringify(userData));
@@ -25,7 +36,17 @@ const LoginRegister = () => {
                 alert("Invalid credentials");
             }
         } else {
-            // Register: store user data
+            const users = JSON.parse(localStorage.getItem("registeredUsers") || "[]");
+            const existingUser = users.find(u => u.email === email);
+            
+            if(existingUser) {
+                alert("Email already registered");
+                return;
+            }
+            
+            users.push({ email, password });
+            localStorage.setItem("registeredUsers", JSON.stringify(users));
+            
             const userData = { email, loginTime: new Date().toISOString() };
             localStorage.setItem("auth", "true");
             localStorage.setItem("userData", JSON.stringify(userData));

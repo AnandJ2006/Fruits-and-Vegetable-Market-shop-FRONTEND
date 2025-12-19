@@ -14,6 +14,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn }) => {
                 <NavLink to = {"/cart"}> Cart </NavLink>
                 <NavLink to = {"/profile"}> Profile </NavLink>
                 <NavLink to = {"/search"}> Search </NavLink>
+                <NavLink to = {"/admin"}> Admin </NavLink>
                 {isLoggedIn ? (
                     <button onClick={handleLogout}>Logout</button>
                 ) : (

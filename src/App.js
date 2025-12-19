@@ -23,6 +23,12 @@ function App() {
       setIsLoggedIn(true);
     }
   }, []);
+  useEffect(() => {
+  fetch("/api/test")
+    .then(res => res.json())
+    // .then(data => setMessage(data.message));
+}, []);
+
   return (
     <div className="App">
       <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
