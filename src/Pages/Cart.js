@@ -79,6 +79,8 @@ const Cart = () => {
     };
     
     try {
+      console.log('Sending order data:', orderData);
+      
       const response = await fetch('https://fruits-and-vegetable-market-shop-backend.onrender.com/api/orders', {
         method: 'POST',
         headers: {
@@ -87,9 +89,11 @@ const Cart = () => {
         body: JSON.stringify(orderData)
       });
       
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Order saved:', result);
+      const result = await response.json();
+      console.log('Backend response:', result);
+      
+      if (response.ok && result.success) {
+        console.log('Order saved successfully:', result.order._id);
         
         const invoice = {
           invoiceNumber: orderData.invoiceNumber,
@@ -99,18 +103,22 @@ const Cart = () => {
           customerContact: orderData.customer.contact,
           customerAddress: orderData.customer.address,
           items: groupedCart,
-          totalAmount: getTotalPrice()
+          totalAmount: getTotalPrice(),
+          orderId: result.order._id
         };
         
         setInvoiceData(invoice);
         setShowInvoice(true);
         setCart([]);
+        
+        alert(`Order placed successfully! Order ID: ${result.order._id}`);
       } else {
-        alert('Failed to save order. Please try again.');
+        console.error('Order failed:', result);
+        alert(`Failed to save order: ${result.message || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error saving order:', error);
-      alert('Error placing order. Please try again.');
+      console.error('Network error saving order:', error);
+      alert(`Network error placing order: ${error.message}. Please check your internet connection and try again.`);
     }
   };
 
@@ -156,6 +164,7 @@ Thank you for your purchase!
           <div className="invoice-header">
             <p><strong>Invoice Number:</strong> {invoiceData.invoiceNumber}</p>
             <p><strong>Date:</strong> {invoiceData.date}</p>
+            {invoiceData.orderId && <p><strong>Order ID:</strong> {invoiceData.orderId}</p>}
             <h3>Customer Details:</h3>
             <p><strong>Name:</strong> {invoiceData.customerName}</p>
             <p><strong>Email:</strong> {invoiceData.customerEmail}</p>
