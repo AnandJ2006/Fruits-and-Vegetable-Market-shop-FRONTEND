@@ -24,9 +24,10 @@ function App() {
     }
   }, []);
   useEffect(() => {
-  fetch("/api/test")
+  fetch("https://fruits-and-vegetable-market-shop-backend.onrender.com/api/test")
     .then(res => res.json())
-    // .then(data => setMessage(data.message));
+    .then(data => console.log('Backend connected:', data.message))
+    .catch(err => console.log('Backend connection failed:', err));
 }, []);
 
   return (
