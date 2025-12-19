@@ -10,7 +10,7 @@ function App() {
   useEffect(()=>{
       const fetchResponse = async()=>{
       try{
-        const response = await fetch("https://fruits-and-vegetable-market-shop-backend.onrender.com");
+        const response = await fetch("/detail.json");
         const da =await response.json();
         setData(da);
       }catch(err){}
