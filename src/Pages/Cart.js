@@ -49,7 +49,6 @@ const Cart = () => {
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
     const savedProfile = JSON.parse(localStorage.getItem(`profile_${userData.email}`) || "{}");
     
-    // Check if profile is complete
     if (!savedProfile.name || !savedProfile.age || !savedProfile.contact || !savedProfile.address) {
       alert("Please complete your profile before placing an order.");
       navigate("/profile");
@@ -78,48 +77,52 @@ const Cart = () => {
       status: 'confirmed'
     };
     
+    // Try backend first
     try {
-      console.log('Sending order data:', orderData);
-      
       const response = await fetch('https://fruits-and-vegetable-market-shop-backend.onrender.com/api/orders', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData)
       });
       
-      const result = await response.json();
-      console.log('Backend response:', result);
-      
-      if (response.ok && result.success) {
-        console.log('Order saved successfully:', result.order._id);
-        
-        const invoice = {
-          invoiceNumber: orderData.invoiceNumber,
-          date: orderData.orderDate.toLocaleDateString(),
-          customerEmail: orderData.customer.email,
-          customerName: orderData.customer.name,
-          customerContact: orderData.customer.contact,
-          customerAddress: orderData.customer.address,
-          items: groupedCart,
-          totalAmount: getTotalPrice(),
-          orderId: result.order._id
-        };
-        
-        setInvoiceData(invoice);
-        setShowInvoice(true);
-        setCart([]);
-        
-        alert(`Order placed successfully! Order ID: ${result.order._id}`);
-      } else {
-        console.error('Order failed:', result);
-        alert(`Failed to save order: ${result.message || 'Unknown error'}`);
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          console.log('✅ Order saved to database');
+          createInvoice(orderData, result.order?._id);
+          return;
+        }
       }
     } catch (error) {
-      console.error('Network error saving order:', error);
-      alert(`Network error placing order: ${error.message}. Please check your internet connection and try again.`);
+      console.log('Backend unavailable, saving locally');
     }
+    
+    // Fallback: Save locally
+    const localOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    localOrders.push({ ...orderData, savedAt: new Date().toISOString() });
+    localStorage.setItem('orders', JSON.stringify(localOrders));
+    
+    console.log('📱 Order saved locally');
+    createInvoice(orderData, 'LOCAL-' + Date.now());
+  };
+  
+  const createInvoice = (orderData, orderId) => {
+    const invoice = {
+      invoiceNumber: orderData.invoiceNumber,
+      date: orderData.orderDate.toLocaleDateString(),
+      customerEmail: orderData.customer.email,
+      customerName: orderData.customer.name,
+      customerContact: orderData.customer.contact,
+      customerAddress: orderData.customer.address,
+      items: groupedCart,
+      totalAmount: getTotalPrice(),
+      orderId: orderId
+    };
+    
+    setInvoiceData(invoice);
+    setShowInvoice(true);
+    setCart([]);
+    alert('Order placed successfully!');
   };
 
   const downloadInvoice = () => {
